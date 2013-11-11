@@ -1,0 +1,89 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Index</title>
+    <link href='http://fonts.googleapis.com/css?family=Source+Code+Pro:300,400,700' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" href="/c/styles.css">
+    <script type="text/javascript" src="/j/d3.min.js"></script>
+</head>
+<body>
+<h1>Soundscapes</h1>
+
+<div id="clips"></div>
+<div id="clip-details"></div>
+<div id="content">
+
+<h2>Itaque his sapiens semper vacabit.</h2>
+
+<p>Rationis enim perfectio est virtus; Itaque contra est, ac dicitis; Quid ergo? Quae sequuntur igitur? </p>
+
+<p>Sed fortuna fortis; Quorum altera prosunt, nocent altera. </p>
+
+<p>Vide, quantum, inquam, fallare, Torquate. Falli igitur possumus. Sed tamen intellego quid velit. Num quid tale Democritus? Quid est igitur, inquit, quod requiras? Erat enim Polemonis. Qualem igitur hominem natura inchoavit? Ea possunt paria non esse. </p>
+
+<p>Confecta res esset. Immo alio genere; Non est igitur summum malum dolor. Quis negat? </p>
+
+<p>An eiusdem modi? Neutrum vero, inquit ille. Praeclare hoc quidem. Videamus animi partes, quarum est conspectus illustrior; Certe, nisi voluptatem tanti aestimaretis. Quod cum dixissent, ille contra. </p>
+
+<h3>Sed ad bona praeterita redeamus.</h3>
+
+<p>Tu quidem reddes; Prave, nequiter, turpiter cenabat; </p>
+
+<p>Quid dubitas igitur mutare principia naturae? Sequitur disserendi ratio cognitioque naturae; Refert tamen, quo modo. Sed haec in pueris; Hic ambiguo ludimur. Si longus, levis; </p>
+
+<p>Ille incendat? Quodsi ipsam honestatem undique pertectam atque absolutam. Duo Reges: constructio interrete. Praeclare hoc quidem. In schola desinis. Eadem fortitudinis ratio reperietur. </p>
+</div>
+<script type="text/javascript" charset="utf-8">
+
+var width = 900, height = 300;
+
+var force = d3.layout.force()
+    .linkDistance(30)
+    .size([width, height]);
+
+var svg = d3.select("#clips").append("svg")
+    .attr("width", width)
+    .attr("height", height);
+
+d3.json("clips.json", function(error, graph) {
+    console.log(error);
+    console.log(graph);
+    force
+      .nodes(graph.nodes)
+      .links(graph.links)
+      .start();
+
+    var link = svg.selectAll(".link")
+        .data(graph.links)
+        .enter().append("line")
+        .attr("class", "link");
+
+    var node = svg.selectAll(".node")
+        .data(graph.nodes)
+        .enter().append("circle")
+        .attr("class", "node")
+        .attr("r", function(d) {
+            return 5 * d.weight;
+        })
+        .call(force.drag)
+        .on("click", function(d) {
+            alert(d.name);  
+        });
+
+      node.append("title")
+          .text(function(d) { return d.name; });
+
+    force.on("tick", function() {
+        link.attr("x1", function(d) { return d.source.x; })
+            .attr("y1", function(d) { return d.source.y; })
+            .attr("x2", function(d) { return d.target.x; })
+            .attr("y2", function(d) { return d.target.y; });
+
+        node.attr("cx", function(d) { return d.x; })
+            .attr("cy", function(d) { return d.y; });
+    });
+});
+</script>
+</body>
+</html>
