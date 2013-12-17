@@ -1,52 +1,21 @@
 {
     "nodes":[
-        {"name": "Foobar"},
-        {"name": "Lorem Ipsum"},
-        {"name": "Dolor Sit"},
-        {"name": "Amet Consectuer"},
-        {"name": "Ipsum Sit Dolor"},
-        {"name": "Foobar"},
-        {"name": "Lorem Ipsum"},
-        {"name": "Dolor Sit"},
-        {"name": "Amet Consectuer"},
-        {"name": "Ipsum Sit Dolor"},
-        {"name": "Foobar"},
-        {"name": "Lorem Ipsum"},
-        {"name": "Dolor Sit"},
-        {"name": "Amet Consectuer"},
-        {"name": "Ipsum Sit Dolor"},
-        {"name": "Foobar"},
-        {"name": "Lorem Ipsum"},
-        {"name": "Dolor Sit"},
-        {"name": "Amet Consectuer"},
-        {"name": "Ipsum Sit Dolor"},
-        {"name": "Foobar"},
-        {"name": "Lorem Ipsum"},
-        {"name": "Dolor Sit"},
-        {"name": "Amet Consectuer"},
-        {"name": "Ipsum Sit Dolor"},
-        {"name": "Foobar"},
-        {"name": "Lorem Ipsum"},
-        {"name": "Dolor Sit"},
-        {"name": "Amet Consectuer"},
-        {"name": "Ipsum Sit Dolor"}
-
+        {"name": "Foobar","file": "camden-joy-it-gets-cold.mp3"},
+        {"name": "Lorem Ipsum", "file": "function-creep-leave-me-alone.mp3"},
+        {"name": "Dolor Sit", "file":"jupiter-makes-me-scream-picture.mp3"},
+        {"name": "Amet Consectuer", "file": "jupiter-makes-me-scream-routine.mp3"},
+        {"name": "Ipsum Sit Dolor", "file":"jupiter-makes-me-scream-sunshine-radio.mp3"},
+        {"name": "Foobar", "file":"jupiter-makes-me-scream-this-girl.mp3"},
+        {"name": "Lorem Ipsum", "file":"nonima-qiameth.mp3"},
+        {"name": "Dolor Sit", "file":"telegraphy-live-set.mp3"},
+        {"name": "Amet Consectuer", "file": "telegraphy-walking-alone.mp3"},
+        {"name": "Ipsum Sit Dolor", "file": "un-sift.mp3"},
+        {"name": "The Secret Rift", "file":"un-the-secret-rift.mp3"}
     ],
+
     "links":[
-        {"source":1,"target":0},
-        {"source":2,"target":0},
-        {"source":3,"target":0},
-        {"source":4,"target":0},
-        {"source":5,"target":0},
-        {"source":7,"target":6},
-        {"source":8,"target":6},
-        {"source":9,"target":6},
-        {"source":11,"target":10},
-        {"source":12,"target":10},
-        {"source":13,"target":10},
-        {"source":14,"target":10}
-
-
-
+        {"source":3,"target":2},
+        {"source":4, "target": 2},
+        {"source":5,"target":2}
     ]
 }
