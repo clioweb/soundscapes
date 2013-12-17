@@ -4,7 +4,8 @@
 }
 
 body {
-    font-family: Helvetica, sans-serif;
+    font-family: "Source Code Pro", sans-serif;
+
     color: rgba(0,0,0,0.65);
     background: rgba(255,200,0, 0.25);
     width:900px;
@@ -22,7 +23,6 @@ h1 {
 }
 
 h1,h2,h3,h4 {
-    font-family: "Source Code Pro", sans-serif;
     font-weight:300;
     color: rgba(0,0,0,0.25);
     margin: 0;
@@ -57,6 +57,18 @@ svg {
 .link {
   stroke: rgba(0,0,0,0.25);
   stroke-width:1px;
+}
+
+#clip-details {
+    text-align:center;
+    margin-top: 4em;
+}
+
+#clip-details audio {
+    display:block;
+    width: 30%;
+    margin: 0 auto;
+    background: #ccc;
 }
 
 
