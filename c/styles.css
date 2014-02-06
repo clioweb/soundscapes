@@ -22,23 +22,6 @@ h1 {
     margin-bottom: 50px;
 }
 
-h1,h2,h3,h4 {
-    font-weight:300;
-    color: rgba(0,0,0,0.25);
-    margin: 0;
-}
-
-p {
-    margin: 1em 0;
-    font-size: 13px;
-}
-
-p + h2,
-p + h3,
-p + h4 {
-    margin-top: 2em;
-}
-
 #content {
     -webkit-column-count:2;
     column-count:2;

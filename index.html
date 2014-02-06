@@ -8,71 +8,15 @@
     <style type="text/css" media="all">
     </style>
     <script type="text/javascript" src="j/d3.min.js"></script>
+    <script type="text/javascript" src="j/wavesurfer.min.js"></script>
 </head>
 <body>
 <h1>Soundscapes</h1>
-<div id="clip-details">
-    <audio controls="controls" id="clip-player"></audio>
-    <p>Select a Clip</p>
+<div id="audio">
+    <div id="wave"></div>
 </div>
 <div id="clips"></div>
-<script type="text/javascript" charset="utf-8">
-
-var width = 900, height = 200;
-
-var force = d3.layout.force()
-    .linkDistance(50)
-    .size([width, height]);
-
-var svg = d3.select("#clips").append("svg")
-    .attr("width", width)
-    .attr("height", height);
-
-d3.json("clips.json", function(error, graph) {
-    console.log(error);
-    console.log(graph);
-    force
-      .nodes(graph.nodes)
-      .links(graph.links)
-      .start();
-
-    var link = svg.selectAll(".link")
-        .data(graph.links)
-        .enter().append("line")
-        .attr("class", "link");
-
-    var node = svg.selectAll(".node")
-        .data(graph.nodes)
-        .enter().append("circle")
-        .attr("class", "node")
-        .attr("r", function(d) {
-            return 5 * d.weight;
-        })
-        .call(force.drag)
-        .on("click", function(d) {
-            var clipDetails = d3.select('#clip-details');
-            var clipLabel = clipDetails.select('p');
-            clipLabel.html(d.name);
-            var audioElement = clipDetails.select('audio');
-            audioElement.attr('src', 'clips/'+d.file);
-            audioElement.attr('autoplay', 'autoplay');
-            audioElement.play();
-        });
-
-      node.append("title")
-          .text(function(d) { return d.name; });
-
-    force.on("tick", function() {
-        link.attr("x1", function(d) { return d.source.x; })
-            .attr("y1", function(d) { return d.source.y; })
-            .attr("x2", function(d) { return d.target.x; })
-            .attr("y2", function(d) { return d.target.y; });
-
-        node.attr("cx", function(d) { return d.x; })
-            .attr("cy", function(d) { return d.y; });
-    });
-});
-</script>
+<script type="text/javascript" src="j/soundscapes.js"></script>
 
 </body>
 </html>
