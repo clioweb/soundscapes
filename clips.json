@@ -7,7 +7,13 @@
         {"name": "Subnode_d1", "file": "Pack_1/sub_node_d1.mp3"},
         {"name": "Node_2","file": "Pack_2/Node_2.mp3"},
         {"name": "Subnode_a2", "file": "Pack_2/sub_node_a2.mp3"},
-        {"name": "Subnode_b2", "file":"Pack_2/sub_node_b2.mp3"}
+        {"name": "Subnode_b2", "file":"Pack_2/sub_node_b2.mp3"},
+        {"name": "Node_3","file": "Pack_1/Node_3.mp3"},
+        {"name": "Subnode_a3", "file": "Pack_3/sub_node_a3.mp3"},
+        {"name": "Subnode_b3", "file":"Pack_3/sub_node_b3.mp3"},
+        {"name": "Subnode_c3", "file": "Pack_3/sub_node_c3.mp3"},
+        {"name": "Subnode_d3", "file": "Pack_3/sub_node_d3.mp3"},
+        {"name": "Subnode_e3", "file": "Pack_3/sub_node_e3.mp3"}
     ],
 
     "links":[
@@ -16,6 +22,11 @@
         {"source":3,"target":0},
         {"source":4,"target":0},
         {"source":6,"target":5},
-        {"source":7,"target":5}
+        {"source":7,"target":5},
+        {"source":9,"target":8},
+        {"source":10,"target":8},
+        {"source":11,"target":8},
+        {"source":12,"target":8},
+        {"source":13,"target":8}
     ]
 }
