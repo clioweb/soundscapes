@@ -1,14 +1,16 @@
 {
     "nodes":[
-        {"name": "Node I","file": "Node_I.mp3"},
-        {"name": "Subnode a", "file": "sub_node_a(soundscape).mp3"},
-        {"name": "Subnode b", "file":"sub_node_b(music).mp3"},
-        {"name": "Subnode c", "file": "sub_node_c(voice).mp3"}
+        {"name": "Node_1","file": "Pack_1/Node_1.mp3"},
+        {"name": "Subnode_a", "file": "Pack_1/sub_node_a1.mp3"},
+        {"name": "Subnode_b", "file":"Pack_1/sub_node_b1.mp3"},
+        {"name": "Subnode_c", "file": "Pack_1/sub_node_c1.mp3"},
+        {"name": "Subnode_d", "file": "Pack_1/sub_node_d1.mp3"}
     ],
 
     "links":[
         {"source":1,"target":0},
         {"source":2, "target": 0},
-        {"source":3,"target":0}
+        {"source":3,"target":0},
+        {"source":4,"target":0}
     ]
 }
