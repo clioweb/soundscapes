@@ -1,16 +1,21 @@
 {
     "nodes":[
         {"name": "Node_1","file": "Pack_1/Node_1.mp3"},
-        {"name": "Subnode_a", "file": "Pack_1/sub_node_a1.mp3"},
-        {"name": "Subnode_b", "file":"Pack_1/sub_node_b1.mp3"},
-        {"name": "Subnode_c", "file": "Pack_1/sub_node_c1.mp3"},
-        {"name": "Subnode_d", "file": "Pack_1/sub_node_d1.mp3"}
+        {"name": "Subnode_a1", "file": "Pack_1/sub_node_a1.mp3"},
+        {"name": "Subnode_b1", "file":"Pack_1/sub_node_b1.mp3"},
+        {"name": "Subnode_c1", "file": "Pack_1/sub_node_c1.mp3"},
+        {"name": "Subnode_d1", "file": "Pack_1/sub_node_d1.mp3"},
+        {"name": "Node_2","file": "Pack_2/Node_2.mp3"},
+        {"name": "Subnode_a2", "file": "Pack_2/sub_node_a2.mp3"},
+        {"name": "Subnode_b2", "file":"Pack_2/sub_node_b2.mp3"}
     ],
 
     "links":[
         {"source":1,"target":0},
         {"source":2, "target": 0},
         {"source":3,"target":0},
-        {"source":4,"target":0}
+        {"source":4,"target":0},
+        {"source":6,"target":5},
+        {"source":7,"target":5}
     ]
 }
