@@ -20,7 +20,12 @@
         {"name": "Node_5","file": "Pack_5/Node_5.mp3"},
         {"name": "Subnode_a5", "file": "Pack_5/sub_node_a5.mp3"},
         {"name": "Subnode_b5", "file":"Pack_5/sub_node_b5.mp3"},
-        {"name": "Subnode_bc", "file":"Pack_5/sub_node_c5.mp3"}
+        {"name": "Subnode_bc", "file":"Pack_5/sub_node_c5.mp3"},
+        {"name": "Node_6","file": "Pack_6/Node_6.mp3"},
+        {"name": "Subnode_a6", "file": "Pack_6/sub_node_a6.mp3"},
+        {"name": "Subnode_b6", "file":"Pack_6/sub_node_b6.mp3"},
+        {"name": "Subnode_c6", "file":"Pack_6/sub_node_c6.mp3"},
+        {"name": "Subnode_d6", "file":"Pack_6/sub_node_d6.mp3"}
 
     ],
 
@@ -40,6 +45,10 @@
         {"source":16,"target":14},
         {"source":18,"target":17},
         {"source":19,"target":17},
-        {"source":20,"target":17}
+        {"source":20,"target":17},
+        {"source":22,"target":21},
+        {"source":23,"target":21},
+        {"source":24,"target":21},
+        {"source":25,"target":21}
     ]
 }
