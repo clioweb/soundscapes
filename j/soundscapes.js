@@ -12,7 +12,7 @@ wavesurfer.on('ready', function () {
     wavesurfer.play();
 });
 
-var width = 900, height = 200;
+var width = 900, height = 600;
 
 var force = d3.layout.force()
     .linkDistance(55)
