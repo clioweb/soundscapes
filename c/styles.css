@@ -118,7 +118,8 @@ h1 {
 .controls button {
     background: transparent;
     border:none;
-    font-size: 1.5em;
+    font-size: 1em;
+    color: rgba(0,0,0, 0.25);
 }
 
 #options {
