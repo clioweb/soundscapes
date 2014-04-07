@@ -15,7 +15,8 @@ wavesurfer.on('ready', function () {
 var width = 900, height = 200;
 
 var force = d3.layout.force()
-    .linkDistance(50)
+    .linkDistance(55)
+    .charge(-150)
     .size([width, height]);
 
 var svg = d3.select("#clips").append("svg")
@@ -33,7 +34,13 @@ d3.json("clips.json", function(error, graph) {
     var link = svg.selectAll(".link")
         .data(graph.links)
         .enter().append("line")
-        .attr("class", "link");
+        .attr("class", function(link) {
+            if (link[ "path"] > 0) {
+                return "link path" ;
+            } else {
+                return "link" ;  
+            }
+        });
 
     var node = svg.selectAll(".node")
         .data(graph.nodes)

@@ -7,7 +7,7 @@ body {
     font-family: "Source Code Pro", sans-serif;
 
     color: rgba(0,0,0,0.65);
-    background: rgb(255,255,255);
+    background: rgba(255,200,0, 0.25);
     width:900px;
     margin: 100px auto;
 }
@@ -33,12 +33,12 @@ svg {
 }
 
 .node {
-  stroke: rgb(47, 79, 79);
+  stroke: #fff;
   stroke-width: 2px;
-  fill: rgb(255,255, 255);
+  fill: rgba(255,200, 0, 1);
 }
 .link {
-  stroke: rgb(47, 79, 79);
+  stroke: rgba(0,0,0,0.25);
   stroke-width:1px;
 }
 .path {
