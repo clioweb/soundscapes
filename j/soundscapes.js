@@ -12,6 +12,12 @@ wavesurfer.on('ready', function () {
     wavesurfer.play();
 });
 
+var button = document.querySelector('#play');
+
+button.addEventListener('click', function (e) {
+    wavesurfer.playPause();
+});
+
 var width = 900, height = 600;
 
 var force = d3.layout.force()

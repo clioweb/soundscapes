@@ -1,3 +1,35 @@
+@font-face {
+	font-family: 'soundscapes';
+	src:url('../fonts/soundscapes.eot?uye0fy');
+	src:url('../fonts/soundscapes.eot?#iefixuye0fy') format('embedded-opentype'),
+		url('../fonts/soundscapes.woff?uye0fy') format('woff'),
+		url('../fonts/soundscapes.ttf?uye0fy') format('truetype'),
+		url('../fonts/soundscapes.svg?uye0fy#soundscapes') format('svg');
+	font-weight: normal;
+	font-style: normal;
+}
+
+[class^="icon-"], [class*=" icon-"] {
+	font-family: 'soundscapes';
+	speak: none;
+	font-style: normal;
+	font-weight: normal;
+	font-variant: normal;
+	text-transform: none;
+	line-height: 1;
+
+	/* Better Font Rendering =========== */
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
+}
+
+.icon-play:before {
+	content: "\e601";
+}
+.icon-pause:before {
+	content: "\e602";
+}
+
 * {
     margin:0;
     padding:0;
@@ -55,3 +87,8 @@ h1 {
     margin: 0 auto;
 }
 
+.controls button {
+    background: transparent;
+    border:none;
+    font-size: 1.5em;
+}
