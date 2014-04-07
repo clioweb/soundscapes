@@ -5,7 +5,6 @@
 
 body {
     font-family: "Source Code Pro", sans-serif;
-
     color: rgba(0,0,0,0.65);
     background: rgb(255,255,255);
     width:900px;
@@ -56,4 +55,8 @@ svg {
     background: #ccc;
 }
 
+#audio {
+    width: 500px;
+    margin: 0 auto;
+}
 
