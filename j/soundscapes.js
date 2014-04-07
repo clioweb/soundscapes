@@ -3,9 +3,9 @@ var wavesurfer = Object.create(WaveSurfer);
 wavesurfer.init({
     container: document.querySelector('#wave'),
     waveColor: 'rgba(0,0,0,0.25)',
-    progressColor: 'rgb(255,200, 0)',
-    cursorColor: 'rgba(0,0,0,0.25)',
-    cursorWidth: '3'
+    progressColor: 'rgb(0,0,0,0)',
+    cursorColor: 'white',
+    cursorWidth: '4'
 });
 
 wavesurfer.on('ready', function () {
