@@ -33,7 +33,7 @@ var button = d3.select('#play').on('click', function (e) {
 // Read our clips.json data to generate our graph and play audio.
 d3.json("clips.json", function(error, graph) {
     //console.log(error);
-    //console.log(graph);    
+    //console.log(graph);
 
     force
       .nodes(graph.nodes)
@@ -86,7 +86,7 @@ d3.json("clips.json", function(error, graph) {
 
         while (true) {
             currentNode = getNextNodeIndex(currentNode, graph);
-            
+
             index = getIndexToPlay(currentNode, graph, currentCategory);
 
             if (index != null) {
@@ -105,7 +105,7 @@ d3.json("clips.json", function(error, graph) {
             d3.select('#'+id).classed('current', true);
             wavesurfer.play();
         });
-        
+
     });
 
     var link = svg.selectAll(".link")
@@ -115,7 +115,7 @@ d3.json("clips.json", function(error, graph) {
             if (link[ "path"] > 0) {
                 return "link path" ;
             } else {
-                return "link" ;  
+                return "link" ;
             }
         });
 
@@ -147,19 +147,13 @@ d3.json("clips.json", function(error, graph) {
 
 // Returns the index of the next node.
 function getNextNodeIndex(currentIndex, data) {
-
     var nextIndex;
-
     var links = data.links;
 
     links.forEach(function(link) {
-
         if (link.source.index == currentIndex && link.path == 1) {
-
             nextIndex = link.target.index;
-        
         }
-
     });
 
     return nextIndex;
@@ -168,39 +162,27 @@ function getNextNodeIndex(currentIndex, data) {
 
 // Function to get the file for a node.
 function getIndexToPlay(index, data, category ) {
-
     var nodes, subnodeIndex;
 
     nodes = data.nodes;
 
     if (category == null) {
-
         subnodeIndex = index;
-
     } else {
-
         var links = data.links;
 
         links.forEach(function(link) {
-
             if (link.target.index == index) {
-
                 var subnode = link.source;
 
                 if (subnode.category == category) {
-
                     subnodeIndex = subnode.index;
-
                 }
-
             }
-
-        }); 
-
+        });
     }
 
     return subnodeIndex;
-
 }
 
 
