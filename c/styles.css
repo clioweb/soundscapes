@@ -23,6 +23,23 @@
 	-moz-osx-font-smoothing: grayscale;
 }
 
+@-webkit-keyframes changefill {
+  0% { fill: white; }
+  100% { fill: orange; }
+}
+@-moz-keyframes changefill {
+  0% { fill: white; }
+  100% { fill: orange; }
+}
+@-o-keyframes changefill {
+  0% { fill: white; }
+  100% { fill: orange; }
+}
+@keyframes changefill {
+  0% { fill: white; }
+  100% { fill: orange; }
+}
+
 .icon-play:before {
 	content: "\e601";
 }
@@ -62,13 +79,16 @@ h1 {
 }
 
 .node {
-  stroke: rgb(47, 79, 79);
-  stroke-width: 2px;
-  fill: rgb(255,255, 255);
+    stroke: rgb(47, 79, 79);
+    stroke-width: 2px;
+    fill: rgb(255,255, 255);
 }
 
 .node.current {
-    fill:orange;
+ -webkit-animation:  changefill 2s infinite alternate; /* Safari 4+ */
+  -moz-animation:    changefill 2s infinite alternate; /* Fx 5+ */
+  -o-animation:      changefill 2s infinite alternate; /* Opera 12+ */
+  animation:         changefill 2s infinite alternate; /* IE 10+ */
 }
 
 .link {
@@ -117,4 +137,5 @@ h1 {
 #options .current {
     color:orange;
 }
+
 
