@@ -30,12 +30,41 @@ var svg = d3.select("#clips").append("svg")
     .attr("height", height);
 
 d3.json("clips.json", function(error, graph) {
-    console.log(error);
-    console.log(graph);
+    //console.log(error);
+    //console.log(graph);    
+
+    var currentNode = 0;
+    var currentCategory = 3;
+
     force
       .nodes(graph.nodes)
       .links(graph.links)
       .start();
+
+    var file = getFileForIndex(currentNode, graph, currentCategory);
+
+    wavesurfer.load('clips/' + file);
+
+    wavesurfer.on('finish', function() {
+
+        while (true) {
+            currentNode = getNextNodeIndex(currentNode, graph);
+            
+            file = getFileForIndex(currentNode, graph, currentCategory);
+
+            if (file != null) {
+                break;
+            }
+
+            if (currentNode == null) {
+                return;
+            }
+
+        }
+
+        wavesurfer.load('clips/' + file);
+        
+    });
 
     var link = svg.selectAll(".link")
         .data(graph.links)
@@ -56,9 +85,6 @@ d3.json("clips.json", function(error, graph) {
             return 5 * d.weight;
         })
         .call(force.drag)
-        .on("click", function(d) {
-            wavesurfer.load('clips/'+d.file);
-        });
 
       node.append("title")
           .text(function(d) { return d.name; });
@@ -74,3 +100,69 @@ d3.json("clips.json", function(error, graph) {
     });
 });
 
+function getNextNodeIndex(currentIndex, data) {
+
+    var nextIndex;
+
+    var links = data.links;
+
+    links.forEach(function(link) {
+
+        //console.log(link.source);
+    
+        if (link.source.index == currentIndex && link.path == 1) {
+
+            nextIndex = link.target.index;
+        
+        }
+
+    });
+
+    // Find the next node relative to the current clip.
+    //
+    // If the currentClip has a category, find the next clip with the same
+    // category.
+
+
+
+    return nextIndex;
+
+}
+
+function getFileForIndex(index, data, category ) {
+
+    var file, nodes;
+
+    nodes = data.nodes;
+
+    if (category == null) {
+
+        file = nodes[index].file
+
+    } else {
+
+        var links = data.links;
+
+        links.forEach(function(link) {
+
+            if (link.target.index == index) {
+
+                var subnode = link.source;
+
+                if (subnode.category == category) {
+
+                    console.log(subnode.index);
+
+                    file = subnode.file;
+
+                }
+
+            }
+
+        }); 
+
+    }
+
+    return file;
+
+}
