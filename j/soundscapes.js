@@ -1,5 +1,7 @@
+// Create a wavesurfer object.
 var wavesurfer = Object.create(WaveSurfer);
 
+// Set wavesurfer options.
 wavesurfer.init({
     container: document.querySelector('#wave'),
     waveColor: 'rgba(0,0,0,0.25)',
@@ -8,51 +10,86 @@ wavesurfer.init({
     cursorWidth: '4'
 });
 
-wavesurfer.on('ready', function () {
-    wavesurfer.play();
-});
-
-var button = document.querySelector('#play');
-
-button.addEventListener('click', function (e) {
-    wavesurfer.playPause();
-});
-
+// Width and height variables for othe d3 graph.
 var width = 900, height = 600;
 
+// Use the force...layout.
 var force = d3.layout.force()
     .linkDistance(55)
     .charge(-150)
     .size([width, height]);
 
+// Find the #clips div and append a SVG tag to it.
 var svg = d3.select("#clips").append("svg")
     .attr("width", width)
     .attr("height", height);
 
+
+// Set up a simple play/pause button for the player.
+var button = d3.select('#play').on('click', function (e) {
+    wavesurfer.playPause();
+});
+
+// Read our clips.json data to generate our graph and play audio.
 d3.json("clips.json", function(error, graph) {
     //console.log(error);
     //console.log(graph);    
-
-    var currentNode = 0;
-    var currentCategory = 3;
 
     force
       .nodes(graph.nodes)
       .links(graph.links)
       .start();
 
-    var file = getFileForIndex(currentNode, graph, currentCategory);
+    // Current node and category, for player.
+    var currentNode = 0;
+    var currentCategory = null;
+    var index;
 
-    wavesurfer.load('clips/' + file);
+    var options = d3.selectAll('#options li')
+                    .on('click', function() {
+                        options.classed('current', false);
+                        d3.select(this).classed('current', true);
 
+                        if (index != null) {
+                            id = graph.nodes[index].name;
+                            d3.select('#'+id).classed('current', false);
+                        }
+                        var categoryOption = d3.select(this).attr('data-category');
+
+                        if (categoryOption == 'all') {
+
+                            currentCategory = null;
+
+                        } else {
+
+                            currentCategory = categoryOption;
+
+                        }
+
+                        // Get the file clip for the current node and category.
+                        index = getIndexToPlay(currentNode, graph, currentCategory);
+
+                        // Tell wavesurfer to load the file.
+                        wavesurfer.load('clips/' + graph.nodes[index].file);
+                        wavesurfer.on('ready', function () {
+                            id = graph.nodes[index].name;
+                            d3.select('#'+id).classed('current', true);
+                            wavesurfer.play();
+                        });
+
+                    });
+
+    // When wavesurfer is finished playing the file, we'll loop to the next one.
     wavesurfer.on('finish', function() {
+            id = graph.nodes[index].name;
+            d3.select('#'+id).classed('current', false);
 
         while (true) {
             currentNode = getNextNodeIndex(currentNode, graph);
             
-            file = getFileForIndex(currentNode, graph, currentCategory);
+            index = getIndexToPlay(currentNode, graph, currentCategory);
 
-            if (file != null) {
+            if (index != null) {
                 break;
             }
 
@@ -62,7 +99,12 @@ d3.json("clips.json", function(error, graph) {
 
         }
 
-        wavesurfer.load('clips/' + file);
+        wavesurfer.load('clips/' + graph.nodes[index].file);
+        wavesurfer.on('ready', function () {
+            id = graph.nodes[index].name;
+            d3.select('#'+id).classed('current', true);
+            wavesurfer.play();
+        });
         
     });
 
@@ -81,6 +123,9 @@ d3.json("clips.json", function(error, graph) {
         .data(graph.nodes)
         .enter().append("circle")
         .attr("class", "node")
+        .attr("id", function(d) {
+            return d.name
+        })
         .attr("r", function(d) {
             return 5 * d.weight;
         })
@@ -100,6 +145,7 @@ d3.json("clips.json", function(error, graph) {
     });
 });
 
+// Returns the index of the next node.
 function getNextNodeIndex(currentIndex, data) {
 
     var nextIndex;
@@ -108,8 +154,6 @@ function getNextNodeIndex(currentIndex, data) {
 
     links.forEach(function(link) {
 
-        //console.log(link.source);
-    
         if (link.source.index == currentIndex && link.path == 1) {
 
             nextIndex = link.target.index;
@@ -118,26 +162,20 @@ function getNextNodeIndex(currentIndex, data) {
 
     });
 
-    // Find the next node relative to the current clip.
-    //
-    // If the currentClip has a category, find the next clip with the same
-    // category.
-
-
-
     return nextIndex;
 
 }
 
-function getFileForIndex(index, data, category ) {
+// Function to get the file for a node.
+function getIndexToPlay(index, data, category ) {
 
-    var file, nodes;
+    var nodes, subnodeIndex;
 
     nodes = data.nodes;
 
     if (category == null) {
 
-        file = nodes[index].file
+        subnodeIndex = index;
 
     } else {
 
@@ -151,9 +189,7 @@ function getFileForIndex(index, data, category ) {
 
                 if (subnode.category == category) {
 
-                    console.log(subnode.index);
-
-                    file = subnode.file;
+                    subnodeIndex = subnode.index;
 
                 }
 
@@ -163,6 +199,8 @@ function getFileForIndex(index, data, category ) {
 
     }
 
-    return file;
+    return subnodeIndex;
 
 }
+
+

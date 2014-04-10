@@ -40,7 +40,7 @@ body {
     color: rgba(0,0,0,0.65);
     background: rgb(255,255,255);
     width:900px;
-    margin: 100px auto;
+    margin: 10px auto;
 }
 
 h1 {
@@ -66,6 +66,11 @@ h1 {
   stroke-width: 2px;
   fill: rgb(255,255, 255);
 }
+
+.node.current {
+    fill:orange;
+}
+
 .link {
   stroke: rgb(47, 79, 79);
   stroke-width:1px;
@@ -95,3 +100,21 @@ h1 {
     border:none;
     font-size: 1.5em;
 }
+
+#options {
+    list-style:none;
+    margin:0;
+    padding-left:0;
+    text-align:center;
+}
+
+#options li {
+    display:inline;
+    margin: 0 1em;
+    cursor:pointer;
+}
+
+#options .current {
+    color:orange;
+}
+
