@@ -71,18 +71,21 @@ d3.json("clips.json", function(error, graph) {
 
                         // Tell wavesurfer to load the file.
                         wavesurfer.load('clips/' + graph.nodes[index].file);
-                        wavesurfer.on('ready', function () {
-                            id = graph.nodes[index].name;
-                            d3.select('#'+id).classed('current', true);
-                            wavesurfer.play();
-                        });
-
                     });
 
     // When wavesurfer is finished playing the file, we'll loop to the next one.
+    wavesurfer.on('ready', function() {
+        var id = graph.nodes[index].name;
+
+        d3.select('#' + id)
+            .classed('current', true);
+
+        wavesurfer.play();
+    });
+
     wavesurfer.on('finish', function() {
-            id = graph.nodes[index].name;
-            d3.select('#'+id).classed('current', false);
+        var id = graph.nodes[index].name;
+        d3.select('#'+id).classed('current', false);
 
         while (true) {
             currentNode = getNextNodeIndex(currentNode, graph);
@@ -100,11 +103,6 @@ d3.json("clips.json", function(error, graph) {
         }
 
         wavesurfer.load('clips/' + graph.nodes[index].file);
-        wavesurfer.on('ready', function () {
-            id = graph.nodes[index].name;
-            d3.select('#'+id).classed('current', true);
-            wavesurfer.play();
-        });
 
     });
 
@@ -184,5 +182,4 @@ function getIndexToPlay(index, data, category ) {
 
     return subnodeIndex;
 }
-
 
