@@ -38,7 +38,7 @@ d3.json("clips.json", function (error, graph) {
     var current = {
         node: 0,
         category: null,
-        index: null
+        index: 0
     };
 
     var options = d3.selectAll('#options li').on('click', function () {
@@ -49,19 +49,17 @@ d3.json("clips.json", function (error, graph) {
             var id = graph.nodes[current.index].name;
             d3.select('#' + id).classed('current', false);
         }
-        var categoryOption = d3.select(this).attr('data-category');
 
+        var categoryOption = d3.select(this).attr('data-category');
         if (categoryOption == 'all') {
             current.category = null;
         } else {
-            current.category = categoryOption;
+            current.category = parseInt(categoryOption);
         }
 
-        // Get the file clip for the current node and category.
-        moveToPlayableIndex(current, graph);
-
-        // Tell wavesurfer to load the file.
-        wavesurfer.load('clips/' + graph.nodes[current.index].file);
+        current.node = 0;
+        findPlayableIndex(current, graph);
+        loadCurrent(current, graph);
     });
 
     // When wavesurfer is finished playing the file, we'll loop to the next one.
@@ -77,21 +75,18 @@ d3.json("clips.json", function (error, graph) {
         var id = graph.nodes[current.index].name;
         d3.select('#' + id).classed('current', false);
 
+        current.index = null;
         while (true) {
             moveToNextNode(current, graph);
-
-            moveToPlayableIndex(current, graph);
-
-            if (current.index != null) {
+            if (findPlayableIndex(current, graph)) {
                 break;
             }
-
             if (current.node == null) {
                 return;
             }
         }
 
-        wavesurfer.load('clips/' + graph.nodes[current.index].file);
+        loadCurrent(current, graph);
     });
 
     var link = svg.selectAll(".link").data(graph.links).enter().append("line").attr("class", function (link) {
@@ -133,34 +128,52 @@ d3.json("clips.json", function (error, graph) {
 
 // Returns the index of the next node.
 function moveToNextNode(pos, data) {
-    var nextIndex;
-    var links = data.links;
+    logPosition('moveToNextNode', pos);
+    var node = pos.node, links = data.links;
 
     links.forEach(function (link) {
-        if (link.source.index == pos.index && link.path == 1) {
-            pos.index = link.target.index;
+        if (link.source.index == pos.node && link.path == 1) {
+            node = link.target.index;
         }
     });
+
+    pos.node = node;
 }
 
 // Function to get the file for a node.
-function moveToPlayableIndex(pos, data) {
-    var nodes, subnodeIndex;
+function findPlayableIndex(pos, data) {
+    logPosition("findPlayableIndex", pos);
+    var nodes = data.nodes, found = false;
 
-    nodes = data.nodes;
-
-    if (pos.category != null) {
-        var links = data.links;
+    if (pos.category == null) {
+        pos.index = pos.node;
+        found = true;
+    } else {
+        var index = pos.index, links = data.links;
 
         links.forEach(function (link) {
-            if (link.target.index == pos.index) {
+            if (link.target.index === pos.node) {
                 var subnode = link.source;
 
-                if (subnode.category == pos.category) {
-                    pos.index = subnode.index;
+                if (subnode.category === pos.category) {
+                    index = subnode.index;
+                    found = true;
                 }
             }
         });
+
+        pos.index = index;
     }
+
+    return found;
+}
+
+function loadCurrent(pos, graph) {
+    console.log('loadCurrent', pos.index, pos);
+    wavesurfer.load('clips/' + graph.nodes[pos.index].file);
+}
+
+function logPosition(msg, pos) {
+    console.log(msg, pos.node, pos.category, pos.index);
 }
 //# sourceMappingURL=soundscapes.js.map

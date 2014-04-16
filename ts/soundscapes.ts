@@ -23,9 +23,9 @@ interface ClipGraph {
 }
 
 interface NodePosition {
-    node: number;
-    category: number;
-    index: number;
+    node: number;       // Current position on the main spine.
+    category: number;   // Category
+    index: number;      // Node to play
 }
 
 // Create a wavesurfer object.
@@ -75,7 +75,7 @@ d3.json("clips.json", function(error, graph : ClipGraph) {
     var current = {
         node: 0,
         category: null,
-        index: null
+        index: 0
     };
 
     var options = d3.selectAll('#options li')
@@ -87,23 +87,17 @@ d3.json("clips.json", function(error, graph : ClipGraph) {
                 var id = graph.nodes[current.index].name;
                 d3.select('#'+id).classed('current', false);
             }
+
             var categoryOption = d3.select(this).attr('data-category');
-
             if (categoryOption == 'all') {
-
                 current.category = null;
-
             } else {
-
-                current.category = categoryOption;
-
+                current.category = parseInt(categoryOption);
             }
 
-            // Get the file clip for the current node and category.
-            moveToPlayableIndex(current, graph);
-
-            // Tell wavesurfer to load the file.
-            wavesurfer.load('clips/' + graph.nodes[current.index].file);
+            current.node = 0;
+            findPlayableIndex(current, graph);
+            loadCurrent(current, graph);
         });
 
     // When wavesurfer is finished playing the file, we'll loop to the next one.
@@ -120,47 +114,42 @@ d3.json("clips.json", function(error, graph : ClipGraph) {
         var id = graph.nodes[current.index].name;
         d3.select('#'+id).classed('current', false);
 
+        current.index = null;
         while (true) {
             moveToNextNode(current, graph);
-
-            moveToPlayableIndex(current, graph);
-
-            if (current.index != null) {
+            if (findPlayableIndex(current, graph)) {
                 break;
             }
-
             if (current.node == null) {
                 return;
             }
-
         }
 
-        wavesurfer.load('clips/' + graph.nodes[current.index].file);
-
+        loadCurrent(current, graph);
     });
 
     var link = svg.selectAll(".link")
         .data(graph.links)
         .enter().append("line")
-        .attr("class", function(link) {
-            if (link[ "path"] > 0) {
-                return "link path" ;
-            } else {
-                return "link" ;
-            }
-        });
+            .attr("class", function(link) {
+                if (link[ "path"] > 0) {
+                    return "link path" ;
+                } else {
+                    return "link" ;
+                }
+            });
 
     var node = svg.selectAll(".node")
         .data(graph.nodes)
         .enter().append("circle")
-        .attr("class", "node")
-        .attr("id", function(d) {
-            return d.name
-        })
-        .attr("r", function(d) {
-            return 5 * d.weight;
-        })
-        .call(force.drag)
+            .attr("class", "node")
+            .attr("id", function(d) {
+                return d.name
+            })
+            .attr("r", function(d) {
+                return 5 * d.weight;
+            })
+            .call(force.drag)
 
     node.append("title")
         .text(function(d) { return d.name; });
@@ -177,35 +166,56 @@ d3.json("clips.json", function(error, graph : ClipGraph) {
 });
 
 // Returns the index of the next node.
-function moveToNextNode(pos : NodePosition, data : ClipGraph) {
-    var nextIndex;
-    var links = data.links;
+function moveToNextNode(pos: NodePosition, data: ClipGraph) {
+    logPosition('moveToNextNode', pos);
+    var node  = pos.node,
+        links = data.links;
 
     links.forEach(function(link: ClipLink) {
-        if (link.source.index == pos.index && link.path == 1) {
-            pos.index = link.target.index;
+        if (link.source.index == pos.node && link.path == 1) {
+            node = link.target.index;
         }
     });
+
+    pos.node = node;
 }
 
 // Function to get the file for a node.
-function moveToPlayableIndex(pos : NodePosition, data : ClipGraph) {
-    var nodes, subnodeIndex;
+function findPlayableIndex(pos: NodePosition, data: ClipGraph): boolean {
+    logPosition("findPlayableIndex", pos);
+    var nodes = data.nodes,
+        found = false;
 
-    nodes = data.nodes;
+    if (pos.category == null) {
+        pos.index = pos.node;
+        found     = true;
 
-    if (pos.category != null) {
-        var links = data.links;
+    } else {
+        var index = pos.index,
+            links = data.links;
 
-        links.forEach(function(link : ClipLink) {
-            if (link.target.index == pos.index) {
+        links.forEach(function(link: ClipLink) {
+            if (link.target.index === pos.node) {
                 var subnode = link.source;
 
-                if (subnode.category == pos.category) {
-                    pos.index = subnode.index;
+                if (subnode.category === pos.category) {
+                    index = subnode.index;
+                    found = true;
                 }
             }
         });
+
+        pos.index = index;
     }
+
+    return found;
 }
 
+function loadCurrent(pos: NodePosition, graph: ClipGraph) {
+    console.log('loadCurrent', pos.index, pos);
+    wavesurfer.load('clips/' + graph.nodes[pos.index].file);
+}
+
+function logPosition(msg: string, pos: NodePosition) {
+    console.log(msg, pos.node, pos.category, pos.index);
+}
