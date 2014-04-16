@@ -1,6 +1,73 @@
 /// <reference path="../typings/d3/d3.d.ts" />
 /// <reference path="../typings/wavesurfer/wavesurfer.d.ts" />
+// TODO: modularize
+// TODO: class SoundScapes
+// TODO: break parts out into functions
+// TODO: no globals
 "use strict";
+var ClipNavigator = (function () {
+    function ClipNavigator(graph) {
+        this.graph = graph;
+        this.node = 0;
+        this.category = null;
+        this.index = null;
+    }
+    ClipNavigator.prototype.next = function () {
+        this.graph.links.forEach(function (link) {
+            var node = this.node;
+            if (link.source.index === this.node && link.path == 1) {
+                node = link.target.index;
+            }
+            this.node = node;
+        });
+    };
+
+    ClipNavigator.prototype.findPlayable = function () {
+        var found = false;
+
+        this.index = null;
+
+        if (this.category == null) {
+            this.index = this.node;
+        } else {
+            var index = this.index;
+
+            this.graph.links.forEach(function (link) {
+                if (link.target.index === this.node) {
+                    var subnode = link.source;
+
+                    if (subnode.category === this.category) {
+                        index = subnode.index;
+                        found = true;
+                    }
+                }
+            });
+
+            this.index = index;
+        }
+
+        return found;
+    };
+
+    ClipNavigator.prototype.getPlayable = function () {
+        return this.graph.nodes[this.index];
+    };
+
+    ClipNavigator.prototype.getPlayableFile = function () {
+        return this.getPlayable().file;
+    };
+
+    ClipNavigator.prototype.getPlayableName = function () {
+        return this.getPlayable().name;
+    };
+
+    ClipNavigator.prototype.rewind = function () {
+        this.node = 0;
+        this.index = null;
+    };
+    return ClipNavigator;
+})();
+
 // Create a wavesurfer object.
 var wavesurfer = Object.create(WaveSurfer);
 
@@ -29,64 +96,52 @@ var button = d3.select('#play').on('click', function (e) {
 
 // Read our clips.json data to generate our graph and play audio.
 d3.json("clips.json", function (error, graph) {
-    //console.log(error);
-    //console.log(graph);
     window['graph'] = graph;
     force.nodes(graph.nodes).links(graph.links).start();
 
     // Current node and category, for player.
-    var current = {
-        node: 0,
-        category: null,
-        index: 0
-    };
+    var nav = new ClipNavigator(graph);
 
     var options = d3.selectAll('#options li').on('click', function () {
         options.classed('current', false);
         d3.select(this).classed('current', true);
 
-        if (current.index != null) {
-            var id = graph.nodes[current.index].name;
-            d3.select('#' + id).classed('current', false);
+        if (nav.index != null) {
+            setCurrent(nav, false);
         }
+        nav.rewind();
 
         var categoryOption = d3.select(this).attr('data-category');
         if (categoryOption == 'all') {
-            current.category = null;
+            nav.category = null;
         } else {
-            current.category = parseInt(categoryOption);
+            nav.category = parseInt(categoryOption);
         }
 
-        current.node = 0;
-        findPlayableIndex(current, graph);
-        loadCurrent(current, graph);
+        nav.findPlayable();
+        loadPlayable(nav);
     });
 
     // When wavesurfer is finished playing the file, we'll loop to the next one.
     wavesurfer.on('ready', function () {
-        var id = graph.nodes[current.index].name;
-
-        d3.select('#' + id).classed('current', true);
-
+        setCurrent(nav, true);
         wavesurfer.play();
     });
 
     wavesurfer.on('finish', function () {
-        var id = graph.nodes[current.index].name;
-        d3.select('#' + id).classed('current', false);
-
-        current.index = null;
+        setCurrent(nav, false);
+        nav.index = null;
         while (true) {
-            moveToNextNode(current, graph);
-            if (findPlayableIndex(current, graph)) {
+            nav.next();
+            if (nav.findPlayable()) {
                 break;
             }
-            if (current.node == null) {
+            if (nav.node == null) {
                 return;
             }
         }
 
-        loadCurrent(current, graph);
+        loadPlayable(nav);
     });
 
     var link = svg.selectAll(".link").data(graph.links).enter().append("line").attr("class", function (link) {
@@ -126,51 +181,15 @@ d3.json("clips.json", function (error, graph) {
     });
 });
 
-// Returns the index of the next node.
-function moveToNextNode(pos, data) {
-    logPosition('moveToNextNode', pos);
-    var node = pos.node, links = data.links;
-
-    links.forEach(function (link) {
-        if (link.source.index == pos.node && link.path == 1) {
-            node = link.target.index;
-        }
-    });
-
-    pos.node = node;
+function loadPlayable(nav) {
+    var file = nav.getPlayableFile();
+    console.log('loadPlayable', nav.index, file, nav);
+    wavesurfer.load('clips/' + file);
 }
 
-// Function to get the file for a node.
-function findPlayableIndex(pos, data) {
-    logPosition("findPlayableIndex", pos);
-    var nodes = data.nodes, found = false;
-
-    if (pos.category == null) {
-        pos.index = pos.node;
-        found = true;
-    } else {
-        var index = pos.index, links = data.links;
-
-        links.forEach(function (link) {
-            if (link.target.index === pos.node) {
-                var subnode = link.source;
-
-                if (subnode.category === pos.category) {
-                    index = subnode.index;
-                    found = true;
-                }
-            }
-        });
-
-        pos.index = index;
-    }
-
-    return found;
-}
-
-function loadCurrent(pos, graph) {
-    console.log('loadCurrent', pos.index, pos);
-    wavesurfer.load('clips/' + graph.nodes[pos.index].file);
+function setCurrent(nav, flag) {
+    var name = nav.getPlayableName();
+    d3.select('#' + name).classed('current', flag);
 }
 
 function logPosition(msg, pos) {
