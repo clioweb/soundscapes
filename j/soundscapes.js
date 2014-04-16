@@ -1,6 +1,5 @@
 /// <reference path="../typings/d3/d3.d.ts" />
 /// <reference path="../typings/wavesurfer/wavesurfer.d.ts" />
-// TODO: break early once found the next node/index
 // TODO: class SoundScapes
 // TODO: break parts out into functions
 // TODO: no globals
@@ -18,11 +17,13 @@ var SoundScapes;
             var _this = this, node = null;
 
             // console.log('next >>>', _this.node);
-            this.graph.links.forEach(function (link) {
+            this.graph.links.every(function (link) {
                 // console.log('***', node, link.source.index, link.path, link.target.index);
                 if (link.source.index === _this.node && link.path == 1) {
                     node = link.target.index;
+                    return false;
                 }
+                return true;
             });
 
             // console.log('next <<<', _this.node);
@@ -41,7 +42,7 @@ var SoundScapes;
             } else {
                 var index = this.index;
 
-                this.graph.links.forEach(function (link) {
+                this.graph.links.every(function (link) {
                     // console.log('***', link.target.index, _this.node, link.source.category, _this.category);
                     if (link.target.index === _this.node) {
                         var subnode = link.source;
@@ -49,8 +50,10 @@ var SoundScapes;
                         if (subnode.category === _this.category) {
                             index = subnode.index;
                             found = true;
+                            return false;
                         }
                     }
+                    return true;
                 });
 
                 this.index = index;
