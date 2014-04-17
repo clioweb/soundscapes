@@ -1,185 +1,359 @@
-// Create a wavesurfer object.
-var wavesurfer = Object.create(WaveSurfer);
+/// <reference path="../typings/d3/d3.d.ts" />
+/// <reference path="../typings/wavesurfer/wavesurfer.d.ts" />
+"use strict";
+var SoundScapes;
+(function (_SoundScapes) {
+    // Width and height variables for the d3 graph.
+    var width = 900, height = 600;
 
-// Set wavesurfer options.
-wavesurfer.init({
-    container: document.querySelector('#wave'),
-    waveColor: 'rgba(0,0,0,0.25)',
-    progressColor: 'rgb(0,0,0,0)',
-    cursorColor: 'white',
-    cursorWidth: '4'
-});
+    var ClipNavigator = (function () {
+        function ClipNavigator(graph) {
+            this.graph = graph;
+            this.node = 0;
+            this.category = null;
+            this.index = null;
+        }
+        ClipNavigator.prototype.reset = function () {
+            this.node = 0;
+            this.category = null;
+            this.index = null;
+        };
 
-// Width and height variables for othe d3 graph.
-var width = 900, height = 600;
+        ClipNavigator.prototype.getNext = function (n) {
+            var here = (n == null) ? this.node : n, node = null;
+            this.graph.links.every(function (link) {
+                if (link.source.index === here && link.path == 1) {
+                    node = link.target.index;
+                    return false;
+                }
+                return true;
+            });
+            return node;
+        };
 
-// Use the force...layout.
-var force = d3.layout.force()
-    .linkDistance(55)
-    .charge(-150)
-    .size([width, height]);
+        ClipNavigator.prototype.next = function () {
+            this.node = this.getNext();
+        };
 
-// Find the #clips div and append a SVG tag to it.
-var svg = d3.select("#clips").append("svg")
-    .attr("width", width)
-    .attr("height", height);
+        ClipNavigator.prototype.findPlayableFrom = function (n) {
+            var _this = this, index = null, node = this.graph.nodes[n];
 
+            if (this.category == null) {
+                index = n;
+            } else {
+                this.graph.links.every(function (link) {
+                    if (link.target.index === n) {
+                        var subnode = link.source;
 
-// Set up a simple play/pause button for the player.
-var button = d3.select('#play').on('click', function (e) {
-    wavesurfer.playPause();
-});
-
-// Read our clips.json data to generate our graph and play audio.
-d3.json("clips.json", function(error, graph) {
-    //console.log(error);
-    //console.log(graph);
-
-    force
-      .nodes(graph.nodes)
-      .links(graph.links)
-      .start();
-
-    // Current node and category, for player.
-    var currentNode = 0;
-    var currentCategory = null;
-    var index;
-
-    var options = d3.selectAll('#options li')
-                    .on('click', function() {
-                        options.classed('current', false);
-                        d3.select(this).classed('current', true);
-
-                        if (index != null) {
-                            id = graph.nodes[index].name;
-                            d3.select('#'+id).classed('current', false);
+                        if (subnode.category === _this.category) {
+                            index = subnode.index;
+                            return false;
                         }
-                        var categoryOption = d3.select(this).attr('data-category');
+                    }
+                    return true;
+                });
+            }
 
-                        if (categoryOption == 'all') {
+            return index;
+        };
 
-                            currentCategory = null;
-
-                        } else {
-
-                            currentCategory = categoryOption;
-
-                        }
-
-                        // Get the file clip for the current node and category.
-                        index = getIndexToPlay(currentNode, graph, currentCategory);
-
-                        // Tell wavesurfer to load the file.
-                        wavesurfer.load('clips/' + graph.nodes[index].file);
-                    });
-
-    // When wavesurfer is finished playing the file, we'll loop to the next one.
-    wavesurfer.on('ready', function() {
-        var id = graph.nodes[index].name;
-
-        d3.select('#' + id)
-            .classed('current', true);
-
-        wavesurfer.play();
-    });
-
-    wavesurfer.on('finish', function() {
-        var id = graph.nodes[index].name;
-        d3.select('#'+id).classed('current', false);
-
-        while (true) {
-            currentNode = getNextNodeIndex(currentNode, graph);
-
-            index = getIndexToPlay(currentNode, graph, currentCategory);
+        ClipNavigator.prototype.findPlayable = function () {
+            var index = this.findPlayableFrom(this.node), found = false;
 
             if (index != null) {
-                break;
+                this.index = index;
+                found = true;
             }
 
-            if (currentNode == null) {
-                return;
-            }
+            return found;
+        };
 
-        }
+        ClipNavigator.prototype.findNextPlayable = function () {
+            var playable = null, next = this.node, np;
 
-        wavesurfer.load('clips/' + graph.nodes[index].file);
+            while (true) {
+                next = this.getNext(next);
 
-    });
+                if (next == null) {
+                    break;
+                }
 
-    var link = svg.selectAll(".link")
-        .data(graph.links)
-        .enter().append("line")
-        .attr("class", function(link) {
-            if (link[ "path"] > 0) {
-                return "link path" ;
-            } else {
-                return "link" ;
-            }
-        });
-
-    var node = svg.selectAll(".node")
-        .data(graph.nodes)
-        .enter().append("circle")
-        .attr("class", "node")
-        .attr("id", function(d) {
-            return d.name
-        })
-        .attr("r", function(d) {
-            return 5 * d.weight;
-        })
-        .call(force.drag)
-
-      node.append("title")
-          .text(function(d) { return d.name; });
-
-    force.on("tick", function() {
-        link.attr("x1", function(d) { return d.source.x; })
-            .attr("y1", function(d) { return d.source.y; })
-            .attr("x2", function(d) { return d.target.x; })
-            .attr("y2", function(d) { return d.target.y; });
-
-        node.attr("cx", function(d) { return d.x; })
-            .attr("cy", function(d) { return d.y; });
-    });
-});
-
-// Returns the index of the next node.
-function getNextNodeIndex(currentIndex, data) {
-    var nextIndex;
-    var links = data.links;
-
-    links.forEach(function(link) {
-        if (link.source.index == currentIndex && link.path == 1) {
-            nextIndex = link.target.index;
-        }
-    });
-
-    return nextIndex;
-
-}
-
-// Function to get the file for a node.
-function getIndexToPlay(index, data, category ) {
-    var nodes, subnodeIndex;
-
-    nodes = data.nodes;
-
-    if (category == null) {
-        subnodeIndex = index;
-    } else {
-        var links = data.links;
-
-        links.forEach(function(link) {
-            if (link.target.index == index) {
-                var subnode = link.source;
-
-                if (subnode.category == category) {
-                    subnodeIndex = subnode.index;
+                np = this.findPlayableFrom(next);
+                if (np != null) {
+                    playable = np;
+                    break;
                 }
             }
-        });
+
+            return playable;
+        };
+
+        ClipNavigator.prototype.getNode = function (i) {
+            return this.graph.nodes[i];
+        };
+
+        ClipNavigator.prototype.getPlayable = function () {
+            return this.getNode(this.index);
+        };
+
+        ClipNavigator.prototype.getPlayableFile = function () {
+            return this.getPlayable().file;
+        };
+
+        ClipNavigator.prototype.getPlayableName = function () {
+            return this.getPlayable().name;
+        };
+
+        ClipNavigator.prototype.rewind = function () {
+            this.node = 0;
+            this.index = null;
+        };
+        return ClipNavigator;
+    })();
+    _SoundScapes.ClipNavigator = ClipNavigator;
+
+    var WaveCache = (function () {
+        function WaveCache() {
+            this.surfer = Object.create(WaveSurfer);
+            this.next = null;
+            this.cached = null;
+        }
+        WaveCache.prototype.init = function () {
+            var _this = this;
+
+            this.surfer.init({
+                container: document.querySelector('#wave'),
+                waveColor: 'rgba(0,0,0,0.25)',
+                progressColor: 'rgb(0,0,0,0)',
+                cursorColor: 'white',
+                cursorWidth: '4'
+            });
+            this.surfer.on('ready', function () {
+                _this.surfer.play();
+                _this.cache();
+            });
+        };
+
+        WaveCache.prototype.swap = function (file) {
+            this.playCache();
+            this.next = (file != null) ? 'clips/' + file : null;
+        };
+
+        WaveCache.prototype.playCache = function () {
+            this.surfer.drawer.clearWave();
+            this.surfer.loadBuffer(this.cached);
+        };
+
+        WaveCache.prototype.on = function (eventName, handler) {
+            var _this = this;
+            this.surfer.on(eventName, function (e) {
+                handler(e, _this.surfer);
+            });
+        };
+
+        WaveCache.prototype.once = function (eventName, handler) {
+            var _this = this;
+            this.surfer.once(eventName, function (e) {
+                handler(e, _this.surfer);
+            });
+        };
+
+        WaveCache.prototype.cache = function (link) {
+            var _this = this, xhr;
+
+            link = (link == null) ? this.next : link;
+            this.next = link;
+
+            xhr = new XMLHttpRequest();
+            xhr.open('GET', link, true);
+            xhr.send();
+
+            xhr.responseType = 'arraybuffer';
+
+            xhr.addEventListener('load', function () {
+                if (200 == xhr.status) {
+                    _this.cached = xhr.response;
+                } else {
+                }
+            });
+            xhr.addEventListener('error', function () {
+            });
+
+            return xhr;
+        };
+        return WaveCache;
+    })();
+    _SoundScapes.WaveCache = WaveCache;
+
+    var SoundScapes = (function () {
+        function SoundScapes() {
+            this.wavecache = new WaveCache();
+            this.force = d3.layout.force().linkDistance(55).charge(-150).size([width, height]);
+            this.svg = d3.select("#clips").append("svg").attr("width", width).attr("height", height);
+        }
+        SoundScapes.prototype.init = function () {
+            this.wavecache.init();
+            this.wireEvents();
+        };
+
+        SoundScapes.prototype.wireEvents = function () {
+            var _this = this;
+
+            this.wireOptions();
+
+            d3.select("#play").on("click", function () {
+                _this.wavecache.surfer.playPause();
+            });
+
+            this.wavecache.on('finish', function (e, ws) {
+                _this.setCurrent(false);
+                _this.nav.index = null;
+                while (true) {
+                    _this.nav.next();
+                    if (_this.nav.node == null) {
+                        _this.wavecache.surfer.drawer.clearWave();
+                        d3.selectAll('#options li').classed('current', false);
+                        _this.nav.reset();
+                        return;
+                    }
+                    if (_this.nav.findPlayable()) {
+                        break;
+                    }
+                }
+
+                var next = _this.nav.findNextPlayable();
+                if (next == null) {
+                    _this.wavecache.playCache();
+                    _this.setCurrent(true);
+                } else {
+                    _this.wavecache.swap(_this.nav.getNode(next).file);
+                    _this.setCurrent(true);
+                }
+            });
+        };
+
+        SoundScapes.prototype.wireReady = function () {
+            var _this = this;
+            this.wavecache.once('ready', function (e, ws) {
+                _this.setCurrent(true);
+                ws.play();
+                _this.queueNextPlayable();
+            });
+        };
+
+        SoundScapes.prototype.go = function () {
+            var _this = this;
+            d3.json("clips.json", function (error, graph) {
+                _this.onData(error, graph);
+            });
+        };
+
+        SoundScapes.prototype.startForce = function () {
+            this.force.nodes(this.graph.nodes).links(this.graph.links).start();
+        };
+
+        SoundScapes.prototype.wireOptions = function () {
+            var _this = this;
+            var options = d3.selectAll('#options li').on('click', function () {
+                options.classed('current', false);
+                d3.select(this).classed('current', true);
+
+                if (_this.nav.index != null) {
+                    _this.setCurrent(false);
+                }
+                _this.nav.rewind();
+
+                var categoryOption = d3.select(this).attr('data-category');
+                if (categoryOption == 'all') {
+                    _this.nav.category = null;
+                } else {
+                    _this.nav.category = parseInt(categoryOption);
+                }
+
+                _this.wireReady();
+                _this.nav.findPlayable();
+                _this.loadCurrentPlayable();
+                _this.queueNextPlayable();
+            });
+        };
+
+        SoundScapes.prototype.drawGraph = function () {
+            this.link = this.svg.selectAll(".link").data(this.graph.links).enter().append("line").attr("class", function (link) {
+                if (link["path"] > 0) {
+                    return "link path";
+                } else {
+                    return "link";
+                }
+            });
+
+            this.node = this.svg.selectAll(".node").data(this.graph.nodes).enter().append("circle").attr("class", "node").attr("id", function (d) {
+                return d.name;
+            }).attr("r", function (d) {
+                return 5 * d.weight;
+            }).call(this.force.drag);
+
+            this.node.append("title").text(function (d) {
+                return d.name;
+            });
+        };
+
+        SoundScapes.prototype.wireForce = function () {
+            var _this = this;
+            this.force.on("tick", function () {
+                _this.link.attr("x1", function (d) {
+                    return d.source.x;
+                }).attr("y1", function (d) {
+                    return d.source.y;
+                }).attr("x2", function (d) {
+                    return d.target.x;
+                }).attr("y2", function (d) {
+                    return d.target.y;
+                });
+
+                _this.node.attr("cx", function (d) {
+                    return d.x;
+                }).attr("cy", function (d) {
+                    return d.y;
+                });
+            });
+        };
+
+        SoundScapes.prototype.onData = function (error, graph) {
+            window['graph'] = graph;
+            this.graph = graph;
+            this.nav = new ClipNavigator(graph);
+
+            this.startForce();
+            this.drawGraph();
+            this.wireForce();
+        };
+
+        SoundScapes.prototype.loadCurrentPlayable = function () {
+            this.wavecache.surfer.load('clips/' + this.nav.getPlayableFile());
+        };
+
+        SoundScapes.prototype.queueNextPlayable = function (n) {
+            if (n == null) {
+                n = this.nav.findNextPlayable();
+            }
+            if (n != null) {
+                this.wavecache.next = 'clips/' + this.nav.getNode(n).file;
+            }
+        };
+
+        SoundScapes.prototype.setCurrent = function (flag) {
+            var name = this.nav.getPlayableName();
+            d3.select('#' + name).classed('current', flag);
+        };
+        return SoundScapes;
+    })();
+    _SoundScapes.SoundScapes = SoundScapes;
+
+    function soundScapes() {
+        var ss = new SoundScapes();
+        ss.init();
+        ss.go();
     }
-
-    return subnodeIndex;
-}
-
+    _SoundScapes.soundScapes = soundScapes;
+})(SoundScapes || (SoundScapes = {}));
+//# sourceMappingURL=soundscapes.js.map
