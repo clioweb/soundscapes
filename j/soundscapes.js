@@ -3,7 +3,7 @@
 "use strict";
 var SoundScapes;
 (function (_SoundScapes) {
-    // Width and height variables for othe d3 graph.
+    // Width and height variables for the d3 graph.
     var width = 900, height = 600;
 
     var ClipNavigator = (function () {
@@ -13,57 +13,84 @@ var SoundScapes;
             this.category = null;
             this.index = null;
         }
-        ClipNavigator.prototype.next = function () {
+        ClipNavigator.prototype.getNext = function () {
             var _this = this, node = null;
-
-            // console.log('next >>>', _this.node);
             this.graph.links.every(function (link) {
-                // console.log('***', node, link.source.index, link.path, link.target.index);
                 if (link.source.index === _this.node && link.path == 1) {
                     node = link.target.index;
                     return false;
                 }
                 return true;
             });
-            _this.node = node;
-            // console.log('next <<<', _this.node);
+            return node;
         };
 
-        ClipNavigator.prototype.findPlayable = function () {
-            var found = false, _this = this;
+        ClipNavigator.prototype.next = function () {
+            var n = this.getNext();
+            if (n != null) {
+                this.node = n;
+            }
+        };
 
-            this.index = null;
+        ClipNavigator.prototype.findPlayableFrom = function (n) {
+            var _this = this, index = null, node = this.graph.nodes[n];
 
-            // console.log('find >>>', _this.node, _this.index);
             if (this.category == null) {
-                this.index = this.node;
-                found = true;
+                index = n;
             } else {
-                var index = this.index;
-
                 this.graph.links.every(function (link) {
-                    // console.log('***', link.target.index, _this.node, link.source.category, _this.category);
-                    if (link.target.index === _this.node) {
+                    if (link.target.index === n) {
                         var subnode = link.source;
 
                         if (subnode.category === _this.category) {
                             index = subnode.index;
-                            found = true;
                             return false;
                         }
                     }
                     return true;
                 });
-
-                this.index = index;
             }
 
-            // console.log('find <<<', _this.node, _this.index, found);
+            return index;
+        };
+
+        ClipNavigator.prototype.findPlayable = function () {
+            var index = this.findPlayableFrom(this.node), found = false;
+
+            if (index != null) {
+                this.index = index;
+                found = true;
+            }
+
             return found;
         };
 
+        ClipNavigator.prototype.findNextPlayable = function () {
+            var playable = null;
+
+            while (true) {
+                var next = this.getNext(), np;
+
+                if (next == null) {
+                    break;
+                }
+
+                np = this.findPlayableFrom(next);
+                if (np != null) {
+                    playable = np;
+                    break;
+                }
+            }
+
+            return playable;
+        };
+
+        ClipNavigator.prototype.getNode = function (i) {
+            return this.graph.nodes[i];
+        };
+
         ClipNavigator.prototype.getPlayable = function () {
-            return this.graph.nodes[this.index];
+            return this.getNode(this.index);
         };
 
         ClipNavigator.prototype.getPlayableFile = function () {
@@ -82,20 +109,83 @@ var SoundScapes;
     })();
     _SoundScapes.ClipNavigator = ClipNavigator;
 
-    var SoundScapes = (function () {
-        function SoundScapes() {
-            this.wavesurfer = Object.create(WaveSurfer);
-            this.force = d3.layout.force().linkDistance(55).charge(-150).size([width, height]);
-            this.svg = d3.select("#clips").append("svg").attr("width", width).attr("height", height);
+    var WaveCache = (function () {
+        function WaveCache() {
+            this.surfer = Object.create(WaveSurfer);
+            this.next = null;
+            this.cached = null;
         }
-        SoundScapes.prototype.init = function () {
-            this.wavesurfer.init({
+        WaveCache.prototype.init = function () {
+            var _this = this;
+
+            this.surfer.init({
                 container: document.querySelector('#wave'),
                 waveColor: 'rgba(0,0,0,0.25)',
                 progressColor: 'rgb(0,0,0,0)',
                 cursorColor: 'white',
                 cursorWidth: '4'
             });
+            this.surfer.on('ready', function () {
+                _this.surfer.play();
+                _this.cache();
+            });
+        };
+
+        WaveCache.prototype.swap = function (file) {
+            this.surfer.drawer.clearWave();
+            this.surfer.loadBuffer(this.cached);
+            this.next = (file != null) ? 'clips/' + file : null;
+        };
+
+        WaveCache.prototype.on = function (eventName, handler) {
+            var _this = this;
+            this.surfer.on(eventName, function (e) {
+                handler(e, _this.surfer);
+            });
+        };
+
+        WaveCache.prototype.once = function (eventName, handler) {
+            var _this = this;
+            this.surfer.once(eventName, function (e) {
+                handler(e, _this.surfer);
+            });
+        };
+
+        WaveCache.prototype.cache = function (link) {
+            var _this = this, xhr;
+
+            link = (link == null) ? this.next : link;
+            this.next = link;
+
+            xhr = new XMLHttpRequest();
+            xhr.open('GET', link, true);
+            xhr.send();
+
+            xhr.responseType = 'arraybuffer';
+
+            xhr.addEventListener('load', function () {
+                if (200 == xhr.status) {
+                    _this.cached = xhr.response;
+                } else {
+                }
+            });
+            xhr.addEventListener('error', function () {
+            });
+
+            return xhr;
+        };
+        return WaveCache;
+    })();
+    _SoundScapes.WaveCache = WaveCache;
+
+    var SoundScapes = (function () {
+        function SoundScapes() {
+            this.wavecache = new WaveCache();
+            this.force = d3.layout.force().linkDistance(55).charge(-150).size([width, height]);
+            this.svg = d3.select("#clips").append("svg").attr("width", width).attr("height", height);
+        }
+        SoundScapes.prototype.init = function () {
+            this.wavecache.init();
             this.wireEvents();
         };
 
@@ -105,14 +195,15 @@ var SoundScapes;
             this.wireOptions();
 
             d3.select("#play").on("click", function () {
-                _this.wavesurfer.playPause();
+                _this.wavecache.surfer.playPause();
             });
 
-            this.wavesurfer.on('ready', function () {
+            this.wavecache.once('ready', function (e, ws) {
                 _this.setCurrent(true);
-                _this.wavesurfer.play();
+                ws.play();
+                _this.queueNextPlayable();
             });
-            this.wavesurfer.on('finish', function () {
+            this.wavecache.on('finish', function (e, ws) {
                 _this.setCurrent(false);
                 _this.nav.index = null;
                 while (true) {
@@ -125,7 +216,11 @@ var SoundScapes;
                     }
                 }
 
-                _this.loadPlayable();
+                var next = _this.nav.findNextPlayable();
+                if (next != null) {
+                    _this.wavecache.swap(_this.nav.getNode(next).file);
+                    _this.setCurrent(true);
+                }
             });
         };
 
@@ -159,7 +254,8 @@ var SoundScapes;
                 }
 
                 _this.nav.findPlayable();
-                _this.loadPlayable();
+                _this.loadCurrentPlayable();
+                _this.queueNextPlayable();
             });
         };
 
@@ -214,8 +310,17 @@ var SoundScapes;
             this.wireForce();
         };
 
-        SoundScapes.prototype.loadPlayable = function () {
-            this.wavesurfer.load('clips/' + this.nav.getPlayableFile());
+        SoundScapes.prototype.loadCurrentPlayable = function () {
+            this.wavecache.surfer.load('clips/' + this.nav.getPlayableFile());
+        };
+
+        SoundScapes.prototype.queueNextPlayable = function (n) {
+            if (n == null) {
+                n = this.nav.findNextPlayable();
+            }
+            if (n != null) {
+                this.wavecache.next = 'clips/' + this.nav.getNode(n).file;
+            }
         };
 
         SoundScapes.prototype.setCurrent = function (flag) {
