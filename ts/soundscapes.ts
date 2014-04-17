@@ -40,6 +40,12 @@ module SoundScapes {
             this.index    = null;
         }
 
+        reset(): void {
+            this.node     = 0;
+            this.category = null;
+            this.index    = null;
+        }
+
         getNext(n?: number): number {
             var here = (n == null) ? this.node : n,
                 node = null;
@@ -54,10 +60,7 @@ module SoundScapes {
         }
 
         next(): void {
-            var n = this.getNext();
-            if (n != null) {
-                this.node = n;
-            }
+            this.node = this.getNext();
         }
 
         findPlayableFrom(n: number): number {
@@ -168,9 +171,13 @@ module SoundScapes {
         }
 
         swap(file: string): void {
+            this.playCache();
+            this.next = (file != null) ? 'clips/' + file : null;
+        }
+
+        playCache(): void {
             this.surfer.drawer.clearWave();
             this.surfer.loadBuffer(this.cached);
-            this.next = (file != null) ? 'clips/' + file : null;
         }
 
         on(eventName: string, handler: (e: Event, ws: WaveSurfer) => void): void {
@@ -247,29 +254,39 @@ module SoundScapes {
                 _this.wavecache.surfer.playPause();
             });
 
-            this.wavecache.once('ready', function(e, ws) {
-                _this.setCurrent(true);
-                ws.play();
-                _this.queueNextPlayable();
-            });
             this.wavecache.on('finish', function(e, ws) {
                 _this.setCurrent(false);
                 _this.nav.index = null;
                 while (true) {
                     _this.nav.next();
+                    if (_this.nav.node == null) {
+                        _this.wavecache.surfer.drawer.clearWave();
+                        d3.selectAll('#options li').classed('current', false);
+                        _this.nav.reset();
+                        return;
+                    }
                     if (_this.nav.findPlayable()) {
                         break;
-                    }
-                    if (_this.nav.node == null) {
-                        return;
                     }
                 }
 
                 var next = _this.nav.findNextPlayable();
-                if (next != null) {
+                if (next == null) {
+                    _this.wavecache.playCache();
+                    _this.setCurrent(true);
+                } else {
                     _this.wavecache.swap(_this.nav.getNode(next).file);
                     _this.setCurrent(true);
                 }
+            });
+        }
+
+        wireReady(): void {
+            var _this = this;
+            this.wavecache.once('ready', function(e, ws) {
+                _this.setCurrent(true);
+                ws.play();
+                _this.queueNextPlayable();
             });
         }
 
@@ -306,6 +323,7 @@ module SoundScapes {
                         _this.nav.category = parseInt(categoryOption);
                     }
 
+                    _this.wireReady();
                     _this.nav.findPlayable();
                     _this.loadCurrentPlayable();
                     _this.queueNextPlayable();
