@@ -13,10 +13,10 @@ var SoundScapes;
             this.category = null;
             this.index = null;
         }
-        ClipNavigator.prototype.getNext = function () {
-            var _this = this, node = null;
+        ClipNavigator.prototype.getNext = function (n) {
+            var here = (n == null) ? this.node : n, node = null;
             this.graph.links.every(function (link) {
-                if (link.source.index === _this.node && link.path == 1) {
+                if (link.source.index === here && link.path == 1) {
                     node = link.target.index;
                     return false;
                 }
@@ -66,10 +66,10 @@ var SoundScapes;
         };
 
         ClipNavigator.prototype.findNextPlayable = function () {
-            var playable = null;
+            var playable = null, next = this.node, np;
 
             while (true) {
-                var next = this.getNext(), np;
+                next = this.getNext(next);
 
                 if (next == null) {
                     break;

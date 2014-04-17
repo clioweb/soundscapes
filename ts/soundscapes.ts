@@ -40,11 +40,11 @@ module SoundScapes {
             this.index    = null;
         }
 
-        getNext(): number {
-            var _this = this,
-                node  = null;
+        getNext(n?: number): number {
+            var here = (n == null) ? this.node : n,
+                node = null;
             this.graph.links.every(function(link): boolean {
-                if (link.source.index === _this.node && link.path == 1) {
+                if (link.source.index === here && link.path == 1) {
                     node = link.target.index;
                     return false;
                 }
@@ -97,11 +97,12 @@ module SoundScapes {
         }
 
         findNextPlayable(): number {
-            var playable = null;
+            var playable = null,
+                next     = this.node,
+                np;
 
             while (true) {
-                var next = this.getNext(),
-                    np;
+                next = this.getNext(next);
 
                 if (next == null) {
                     break;
