@@ -118,7 +118,7 @@ h1 {
 .controls button {
     background: transparent;
     border:none;
-    font-size: 1em;
+    font-size: 1.5em;
     color: rgba(0,0,0, 0.25);
 }
 
@@ -138,5 +138,4 @@ h1 {
 #options .current {
     color:orange;
 }
-
 
