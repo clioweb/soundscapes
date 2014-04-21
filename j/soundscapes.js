@@ -35,6 +35,24 @@ var SoundScapes;
             this.node = this.getNext();
         };
 
+        ClipNavigator.prototype.findParentFrom = function (n) {
+            var node = this.getNode(n), pId = null;
+
+            if (node.category == null) {
+                pId = n;
+            } else {
+                this.graph.links.every(function (link) {
+                    if (link.source.index == n) {
+                        pId = link.target.index;
+                        return false;
+                    }
+                    return true;
+                });
+            }
+
+            return pId;
+        };
+
         ClipNavigator.prototype.findPlayableFrom = function (n) {
             var _this = this, index = null, node = this.graph.nodes[n];
 
@@ -107,6 +125,12 @@ var SoundScapes;
         ClipNavigator.prototype.rewind = function () {
             this.node = 0;
             this.index = null;
+        };
+
+        ClipNavigator.prototype.skipTo = function (node, playing, category) {
+            this.node = node;
+            this.index = playing;
+            this.category = category;
         };
         return ClipNavigator;
     })();
@@ -212,7 +236,7 @@ var SoundScapes;
                     _this.nav.next();
                     if (_this.nav.node == null) {
                         _this.wavecache.surfer.drawer.clearWave();
-                        d3.selectAll('#options li').classed('current', false);
+                        _this.clearOptions();
                         _this.nav.reset();
                         return;
                     }
@@ -278,6 +302,8 @@ var SoundScapes;
         };
 
         SoundScapes.prototype.drawGraph = function () {
+            var _this = this;
+
             this.link = this.svg.selectAll(".link").data(this.graph.links).enter().append("line").attr("class", function (link) {
                 if (link["path"] > 0) {
                     return "link path";
@@ -290,7 +316,18 @@ var SoundScapes;
                 return d.name;
             }).attr("r", function (d) {
                 return 5 * d.weight;
-            }).call(this.force.drag);
+            }).call(this.force.drag).on('click', function (d, i) {
+                var p = _this.nav.findParentFrom(d.index);
+                if (_this.nav.index != null) {
+                    _this.setCurrent(false);
+                }
+                _this.nav.reset();
+                _this.nav.skipTo(p, d.index, d.category);
+                _this.setCategory(d.category);
+                _this.loadCurrentPlayable();
+                _this.setCurrent(true);
+                _this.queueNextPlayable();
+            });
 
             this.node.append("title").text(function (d) {
                 return d.name;
@@ -328,6 +365,24 @@ var SoundScapes;
             this.wireForce();
         };
 
+        SoundScapes.prototype.clearOptions = function () {
+            d3.selectAll('#options li').classed('current', false);
+        };
+
+        SoundScapes.prototype.setCategory = function (c) {
+            var category = this.nav.category, selector;
+
+            this.clearOptions();
+
+            if (category == null) {
+                selector = '.all';
+            } else {
+                selector = '.category' + category;
+            }
+
+            d3.selectAll('#options ' + selector).classed('current', true);
+        };
+
         SoundScapes.prototype.loadCurrentPlayable = function () {
             this.wavecache.surfer.load('clips/' + this.nav.getPlayableFile());
         };
@@ -356,4 +411,3 @@ var SoundScapes;
     }
     _SoundScapes.soundScapes = soundScapes;
 })(SoundScapes || (SoundScapes = {}));
-//# sourceMappingURL=soundscapes.js.map
