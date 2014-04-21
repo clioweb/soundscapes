@@ -9,6 +9,18 @@ module SoundScapes {
     // Width and height variables for the d3 graph.
     var width = 900, height = 600;
 
+    function getCategoryClass(category: number): string {
+        var className = null;
+
+        if (category == null) {
+            className = 'all';
+        } else {
+            className = 'category' + category;
+        }
+
+        return className;
+    }
+
     export interface ClipNode extends D3.Layout.GraphNode {
         weight: number;
         name: string;
@@ -429,15 +441,9 @@ module SoundScapes {
 
         setCategory(c: number): void {
             var category = this.nav.category,
-                selector;
+                selector = '.' + getCategoryClass(category);
 
             this.clearOptions();
-
-            if (category == null) {
-                selector = '.all';
-            } else {
-                selector = '.category' + category;
-            }
 
             d3.selectAll('#options ' + selector)
                 .classed('current', true);
@@ -457,8 +463,11 @@ module SoundScapes {
         }
 
         setCurrent(flag: boolean): void {
-            var name = this.nav.getPlayableName();
-            d3.select('#' + name).classed('current', flag);
+            var name     = this.nav.getPlayableName(),
+                catClass = getCategoryClass(this.nav.category);
+            d3.select('#' + name)
+                .classed('current', flag)
+                .classed(catClass,  flag);
         }
     }
 
