@@ -63,6 +63,25 @@ module SoundScapes {
             this.node = this.getNext();
         }
 
+        findParentFrom(n: number): number {
+            var node = this.getNode(n),
+                pId  = null;
+
+            if (node.category == null) {
+                pId = n;
+            } else {
+                this.graph.links.every(function(link: ClipLink): boolean {
+                    if (link.source.index == n) {
+                        pId = link.target.index;
+                        return false;
+                    }
+                    return true;
+                });
+            }
+
+            return pId;
+        }
+
         findPlayableFrom(n: number): number {
             var _this = this,
                 index = null,
@@ -140,6 +159,12 @@ module SoundScapes {
         rewind() {
             this.node  = 0;
             this.index = null;
+        }
+
+        skipTo(node: number, playing: number, category: number): void {
+            this.node     = node;
+            this.index    = playing;
+            this.category = category;
         }
     }
 
@@ -261,7 +286,7 @@ module SoundScapes {
                     _this.nav.next();
                     if (_this.nav.node == null) {
                         _this.wavecache.surfer.drawer.clearWave();
-                        d3.selectAll('#options li').classed('current', false);
+                        _this.clearOptions();
                         _this.nav.reset();
                         return;
                     }
@@ -331,6 +356,8 @@ module SoundScapes {
         }
 
         drawGraph(): void {
+            var _this = this;
+
             this.link = this.svg.selectAll(".link")
                 .data(this.graph.links)
                 .enter().append("line")
@@ -353,6 +380,18 @@ module SoundScapes {
                         return 5 * d.weight;
                     })
                     .call(this.force.drag)
+                    .on('click', function(d: ClipNode, i: number): void {
+                        var p = _this.nav.findParentFrom(d.index);
+                        if (_this.nav.index != null) {
+                            _this.setCurrent(false);
+                        }
+                        _this.nav.reset();
+                        _this.nav.skipTo(p, d.index, d.category);
+                        _this.setCategory(d.category);
+                        _this.loadCurrentPlayable();
+                        _this.setCurrent(true);
+                        _this.queueNextPlayable();
+                    });
 
             this.node.append("title")
                 .text(function(d) { return d.name; });
@@ -381,6 +420,27 @@ module SoundScapes {
             this.startForce();
             this.drawGraph();
             this.wireForce();
+        }
+
+        clearOptions(): void {
+            d3.selectAll('#options li')
+                .classed('current', false);
+        }
+
+        setCategory(c: number): void {
+            var category = this.nav.category,
+                selector;
+
+            this.clearOptions();
+
+            if (category == null) {
+                selector = '.all';
+            } else {
+                selector = '.category' + category;
+            }
+
+            d3.selectAll('#options ' + selector)
+                .classed('current', true);
         }
 
         loadCurrentPlayable(): void {
