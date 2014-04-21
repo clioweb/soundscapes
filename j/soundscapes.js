@@ -324,7 +324,10 @@ var SoundScapes;
                 }
             });
 
-            this.node = this.svg.selectAll(".node").data(this.graph.nodes).enter().append("circle").attr("class", "node").attr("id", function (d) {
+            this.node = this.svg.selectAll(".node").data(this.graph.nodes).enter().append("circle").attr("class", function (d) {
+                var categoryClass = getCategoryClass(d.category);
+                return "node " + categoryClass;
+            }).attr("id", function (d) {
                 return d.name;
             }).attr("r", function (d) {
                 return 5 * d.weight;
@@ -403,8 +406,8 @@ var SoundScapes;
         };
 
         SoundScapes.prototype.setCurrent = function (flag) {
-            var name = this.nav.getPlayableName(), catClass = getCategoryClass(this.nav.category);
-            d3.select('#' + name).classed('current', flag).classed(catClass, flag);
+            var name = this.nav.getPlayableName();
+            d3.select('#' + name).classed('current', flag);
         };
         return SoundScapes;
     })();
