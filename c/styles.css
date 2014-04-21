@@ -24,20 +24,20 @@
 }
 
 @-webkit-keyframes changefill {
-  0% { fill: white; }
-  100% { fill: orange; }
+  0% { fill-opacity: 0; }
+  100% { fill-opacity: 1; }
 }
 @-moz-keyframes changefill {
-  0% { fill: white; }
-  100% { fill: orange; }
+  0% { fill-opacity: 0; }
+  100% { fill-opacity: 1; }
 }
 @-o-keyframes changefill {
-  0% { fill: white; }
-  100% { fill: orange; }
+  0% { fill-opacity: 0; }
+  100% { fill-opacity: 1; }
 }
 @keyframes changefill {
-  0% { fill: white; }
-  100% { fill: orange; }
+  0% { fill-opacity: 0; }
+  100% { fill-opacity: 1; }
 }
 
 .icon-play:before {
@@ -56,21 +56,17 @@ body {
     font-family: "Source Code Pro", sans-serif;
     color: rgba(0,0,0,0.65);
     background: rgb(255,255,255);
-    width:900px;
-    margin: 10px auto;
 }
 
 h1 {
     font-weight: 300;
     text-transform:uppercase;
-    text-align:center;
+    text-align:left;
     color: rgba(0,0,0, 0.25);
     font-size: 2em;
-    margin-bottom: 50px;
-    position:fixed;
-    width: 100%;
-    bottom:0;
-    left:0;
+    float:left;
+    margin-left:20px;
+    display:none;
 }
 
 #content {
@@ -81,7 +77,6 @@ h1 {
 .node {
     stroke: rgb(47, 79, 79);
     stroke-width: 2px;
-    fill: rgb(255,255, 255);
 }
 
 .node.current {
@@ -122,20 +117,67 @@ h1 {
     color: rgba(0,0,0, 0.25);
 }
 
-#options {
-    list-style:none;
-    margin:0;
-    padding-left:0;
-    text-align:center;
+#presets {
+    border:1px solid black;
+    width: 300px;
+    margin: 20px auto;
+    padding:10px 10px 0;
+    border-radius: 10px;
 }
 
-#options li {
-    display:inline;
-    margin: 0 1em;
+#presets h2 {
+    font-size:1em;
+    font-weight: bold;
+    margin-bottom: 0.5em;
+}
+
+#presets ul {
+    list-style:none;
+    padding-left:0;
+    text-align:justify;
+}
+
+#presets ul:after {
+    display:inline-block;
+    content: ' ';
+    width:100%;
+    height:0;
+}
+
+#presets li {
+    display:inline-block;
+    margin: 0 1em 0 0;
     cursor:pointer;
+    height:0;
+    padding-top: 20px;
+    width: 20px;
 }
 
 #options .current {
     color:orange;
 }
 
+.all {
+    background: #ffff00;
+    fill: #ffff00;
+}
+
+.category1 {
+    background: #ff0000;
+    fill:#ff0000;
+}
+
+.category2 {
+    background: #0000ff;
+    fill: #0000ff;
+}
+
+.category3 {
+    background: #00ff00;
+    fill: #00ff00;
+}
+
+.category4 {
+    background: #00ffff;
+    fill: #00ff00;
+}
